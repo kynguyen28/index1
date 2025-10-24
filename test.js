@@ -26,6 +26,7 @@ test("shows empty state", async () => {
     expect(screen.getByText(/No questions found/i)).toBeInTheDocument();
 });
 
+
 test("shows error state", async () => {
     global.fetch = jest.fn(() => Promise.reject("Error"));
     document.body.innerHTML = `<main></main>`;

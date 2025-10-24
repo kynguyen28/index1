@@ -1,4 +1,4 @@
-<!DoimageTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -7,69 +7,244 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header class="header">
-    <div class="header__container">
-      <h1 class="header__logo">MockTest Lite</h1>
-      <nav class="header__nav">
-        <a href="#features" class="header__link">Features</a>
-        <a href="#how" class="header__link">How It Works</a>
-        <a href="#contact" class="header__link header__link--cta">Start Now</a>
-      </nav>
-    </div>
-  </header>
+  <div id="root"></div>
 
-  <main class="main">
-    <section class="main__hero">
-      <div class="main__text">
-        <h2 class="main__title">Boost Your Exam Confidence</h2>
-        <p class="main__subtitle">
-          MockTest Lite helps you practice online tests easily — anytime, anywhere.
+  <!-- React CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    // ---------------------- Login/Register ----------------------
+    function AuthPage({ onLogin }) {
+      const [isLogin, setIsLogin] = useState(true);
+      const [email, setEmail] = useState("");
+      const [password, setPassword] = useState("");
+      const [error, setError] = useState("");
+
+      const handleAuth = () => {
+        const users = JSON.parse(localStorage.getItem("users") || "{}");
+        if (isLogin) {
+          if (users[email] && users[email] === password) {
+            localStorage.setItem("loggedInUser", email);
+            onLogin();
+          } else {
+            setError("Sai email hoặc mật khẩu");
+          }
+        } else {
+          if (users[email]) {
+            setError("Tài khoản đã tồn tại");
+          } else {
+            users[email] = password;
+            localStorage.setItem("users", JSON.stringify(users));
+            alert("Đăng ký thành công! Vui lòng đăng nhập.");
+            setIsLogin(true);
+          }
+        }
+      };
+
+      return (
+        <div className="centered">
+          <div className="card">
+            <h2>{isLogin ? "Đăng nhập" : "Đăng ký"}</h2>
+            <input type="email" placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)} />
+            <input type="password" placeholder="Mật khẩu" value={password} onChange={(e)=>setPassword(e.target.value)} />
+            {error && <p className="error-text">{error}</p>}
+            <button onClick={handleAuth}>{isLogin ? "Đăng nhập" : "Đăng ký"}</button>
+            <div className="switch-link" onClick={()=>{setIsLogin(!isLogin); setError("");}}>
+              {isLogin ? "Chưa có tài khoản? Đăng ký" : "Đã có tài khoản? Đăng nhập"}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ---------------------- Trang Chủ ----------------------
+    function Home({ onStart, onLogout }) {
+      return (
+        <div id="home-section">
+          <header className="header">
+            <h1 className="header__logo">MockTest Lite</h1>
+            <nav className="header__nav">
+              <button onClick={onStart} className="primary-btn">Bắt đầu</button>
+              <button onClick={onLogout} className="secondary-btn">Đăng xuất</button>
+            </nav>
+          </header>
+<main className="main">
+  <section className="main__hero centered">
+    <div className="main__content">
+      <div className="main__text">
+        <h2>Tăng cường sự tự tin trong kỳ thi của bạn</h2>
+        <p>
+          MockTest Lite giúp bạn luyện thi trực tuyến dễ dàng — mọi lúc, mọi nơi.
         </p>
-        <button class="main__cta">Try Free Test</button>
+
       </div>
-      <img src="images\word-english-on-white-background-with-england-vector-22387406.png" alt="Online Test" class="main__image" />
-    </section>
 
-    <!-- 📝 SIGN UP FORM -->
-    <section id="signup" class="signup">
-      <h3 class="signup__title">Join MockTest Lite for Free</h3>
-      <form class="signup__form" aria-label="Registration Form">
-        <label for="name" class="signup__label">Full Name</label>
-        <input type="text" id="name" class="signup__input" placeholder="Enter your name" required />
+      <img src="images/filters_quality(70).webp" alt="MockTest illustration"
+        className="main__image"
+      />
+    </div>
+  </section>
+</main>
+        </div>
+      );
+      
+    }
 
-        <label for="email" class="signup__label">Email</label>
-        <input type="email" id="email" class="signup__input" placeholder="Enter your email" required />
+    // ---------------------- NavBar ----------------------
+    function NavBar({ current, total, onPrev, onNext }) {
+      return (
+        <div className="navbar">
+          <button onClick={onPrev} disabled={current === 0}>← Trước</button>
+          <span>{`Câu ${current + 1} / ${total}`}</span>
+          <button onClick={onNext} disabled={current === total - 1}>Tiếp →</button>
+        </div>
+      );
+    }
+    
 
-        <label for="password" class="signup__label">Password</label>
-        <input type="password" id="password" class="signup__input" placeholder="Create a password" required />
+    // ---------------------- Choices ----------------------
+    function Choices({ choices, selected, onSelect }) {
+      return (
+        <ul className="choices">
+          {choices.map((choice, index) => (
+            <li key={index}>
+              <label>
+                <input
+                  type="radio"
+                  name="choice"
+                  checked={selected === choice}
+                  onChange={() => onSelect(choice)}
+                />
+                {choice}
+              </label>
+            </li>
+          ))}
+        </ul>
+      );
+    }
 
-        <button type="submit" class="signup__btn">Sign Up</button>
-      </form>
-    </section>
-  </main>
+    // ---------------------- QuestionCard ----------------------
+    function QuestionCard({ question, choices, selected, onSelect }) {
+      return (
+        <div className="question-card">
+          <h3>{question}</h3>
+          <Choices choices={choices} selected={selected} onSelect={onSelect} />
+        </div>
+      );
+    }
 
-    <section id="features" class="features">
-      <h3 class="features__title">Key Benefits</h3>
-      <ul class="features__list">
-        <li class="features__item">✔ Realistic timed mock tests</li>
-        <li class="features__item">✔ Instant result analysis</li>
-        <li class="features__item">✔ Accessible on all devices</li>
-      </ul>
-    </section>
+    // ---------------------- MockTest ----------------------
+    function MockTest({ onBackHome }) {
+      const data = [
+        { question: "React là gì?", choices: ["Thư viện JS", "Framework", "Ngôn ngữ lập trình"], correct: "Thư viện JS" },
+        { question: "Hook nào dùng để quản lý trạng thái?", choices: ["useState", "useEffect", "useMemo"], correct: "useState" },
+        { question: "Thuộc tính key trong React dùng để làm gì?", choices: ["Định danh phần tử", "Trang trí phần tử", "Gắn CSS"], correct: "Định danh phần tử" },
+      ];
+
+      const [current, setCurrent] = useState(0);
+      const [answers, setAnswers] = useState({});
+      const [showResult, setShowResult] = useState(false);
+
+      const handleSelect = (choice) => setAnswers({ ...answers, [current]: choice });
+      const next = () => { if (current < data.length - 1) setCurrent(current + 1); };
+      const prev = () => { if (current > 0) setCurrent(current - 1); };
+      const submit = () => setShowResult(true);
+
+      if (showResult) {
+        const correctCount = data.filter((q, i) => answers[i] === q.correct).length;
+        return (
+          <div className="centered card result-card">
+            <h2>Kết quả làm bài</h2>
+            <p>✅ Đúng: {correctCount}</p>
+            <p>❌ Sai: {data.length - correctCount}</p>
+            <button onClick={onBackHome}>Về trang chủ</button>
+          </div>
+        );
+      }
+
+      return (
+        <div className="centered card mocktest-card">
+          <NavBar current={current} total={data.length} onPrev={prev} onNext={next} />
+          <QuestionCard
+            question={data[current].question}
+            choices={data[current].choices}
+            selected={answers[current]}
+            onSelect={handleSelect}
+          />
+          {current === data.length - 1 ? (
+            <button onClick={submit}>Nộp bài</button>
+          ) : (
+            <button onClick={next}>Tiếp tục</button>
+          )}
+        </div>
+      );
+    }
+
+    // ---------------------- App ----------------------
+    function App() {
+      const [page, setPage] = useState(
+        localStorage.getItem("loggedInUser") ? "home" : "auth"
+      );
+
+      const handleLogout = () => {
+        localStorage.removeItem("loggedInUser");
+        setPage("auth");
+      };
+
+      if (page === "auth") return <AuthPage onLogin={() => setPage("home")} />;
+      if (page === "home") return <Home onStart={() => setPage("mocktest")} onLogout={handleLogout} />;
+      if (page === "mocktest") return <MockTest onBackHome={() => setPage("home")} />;
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
+
+<!-- Hero section -->
+  <section class="hero">
+    <div class="hero-content">
+      <h2>Hỗ trợ bạn hiểu rõ chuyên sâu hơn </h2>
+      <p>MockTest Lite sẽ hỗ trợ và luôn đồng hành với bạn trong các buổi luyện thi .</p>
      
+    </div>
+    <div class="hero-image">
+    <img src="images/pngtree-language-learning-center-isometric-concept-with-corporate-training-online-courses-various-picture-image_1862548.jpg" alt="MockTest illustration">
+    
+  </div>
+  </section>
 
-    <section id="how" class="how">
-      <h3 class="how__title">How to Use</h3>
-      <ol class="how__steps">
-        <li class="how__step">Sign up or log in</li>
-        <li class="how__step">Select a test category</li>
-        <li class="how__step">Take the test and view results instantly</li>
-      </ol>
-    </section>
-  </main>
+  <!-- Features section -->
+  <section class="features">
+    <h2>Vì sao chọn MockTest Lite?</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <img src="https://cdn-icons-png.flaticon.com/512/4313/4313367.png" alt="Fast practice">
+        <h3>Luyện tập nhanh chóng</h3>
+        <p>Chỉ vài cú nhấp chuột, bạn có thể bắt đầu bài thi và xem kết quả ngay lập tức.</p>
+      </div>
+      <div class="feature-card">
+        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135789.png" alt="User friendly">
+        <h3>Giao diện thân thiện</h3>
+        <p>Thiết kế đơn giản, hiện đại giúp bạn tập trung vào nội dung ôn luyện.</p>
+      </div>
+      <div class="feature-card">
+        <img src="https://cdn-icons-png.flaticon.com/512/3502/3502458.png" alt="Track results">
+        <h3>Theo dõi tiến độ</h3>
+        <p>Hệ thống ghi lại kết quả giúp bạn nhận ra điểm mạnh và cải thiện điểm yếu.</p>
+      </div>
+    </div>
+  </section>
 
-  <footer class="footer" id="contact">
-    <p class="footer__text">© 2025 MockTest Lite. All rights reserved.</p>
+
+    <!-- --------Footer ---------- -->
+  <footer class="footer">
+    <p>© 2025 MockTest Lite. Mọi quyền được bảo lưu.</p>
   </footer>
 </body>
 </html>
+
