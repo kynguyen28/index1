@@ -25,24 +25,27 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # 4️⃣ Run lint
+      # 4️⃣ Run lint (nếu có script lint trong package.json)
       - name: Run Linter
         run: |
           npm run lint || echo "⚠️ Lint warnings (no fail)"
 
-      # 5️⃣ Run Jest tests with coverage
-      - name: Run Tests
-        run: |
-          npm test -- --coverage
+      # 5️⃣ Fix Jest permission (phòng lỗi 'Permission denied')
+      - name: Fix Jest permissions
+        run: chmod +x ./node_modules/.bin/jest || true
 
-      # 6️⃣ Upload coverage artifact
+      # 6️⃣ Run Jest tests with coverage
+      - name: Run Tests
+        run: npx jest --coverage
+
+      # 7️⃣ Upload coverage artifact
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: coverage/
 
-  # 🐳 Optional: Build Docker image
+  # 🐳 Optional: Build Docker image (chạy sau khi test pass)
   docker-build:
     runs-on: ubuntu-latest
     needs: build-and-test
