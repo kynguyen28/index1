@@ -1,38 +1,50 @@
-name: CI - MockTest Project
+name: CI/CD - MockTest API (Node.js)
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - master
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
+      - master
 
 jobs:
-  build-and-test:
+  lint_and_test:
+    name: Lint & Test Application
     runs-on: ubuntu-latest
+    
+    # Thiết lập biến môi trường để đảm bảo app.js biết đây là môi trường test
+    env:
+      NODE_ENV: test 
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code 📥
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Set up Node.js ⚙️
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: '18' 
+          cache: 'npm'
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install dependencies 📦
+        run: npm ci
 
-      - name: Run Linter
-        run: npm run lint || echo "⚠️ Lint warnings (no fail)"
+      - name: Run Lint 🧹 (Nếu có)
+        # Sẽ chạy nếu bạn có script "lint" trong package.json
+        run: npm run lint || echo "Script 'lint' not found, skipping Lint."
+        continue-on-error: true
 
-      - name: Fix Jest permissions
-        run: chmod -R 777 node_modules
+      - name: Run Tests and Generate Coverage 🧪
+        # Chạy Jest, nó sẽ tự động sử dụng __mocks__/mysql2.js
+        run: npm test -- --coverage
 
-      - name: Run Tests
-        run: npx jest --coverage
-
-      - name: Upload coverage report
+      - name: Upload Coverage Artifact ⬆️
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-report
+          name: test-coverage-report
+          # Jest thường tạo báo cáo HTML tại coverage/lcov-report/
           path: coverage/
+          retention-days: 7
