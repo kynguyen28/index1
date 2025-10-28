@@ -1,38 +1,70 @@
-name: CI - MockTest Project
+name: CI/CD - MockTest Lite
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - master
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
+      - master
 
 jobs:
-  build-and-test:
+  build_and_test:
+    name: Build, Lint & Test
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code 📥
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Set up Node.js ⚙️
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: '18' # Hoặc phiên bản Node.js bạn đang dùng (ví dụ: '20')
+          cache: 'npm'
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install dependencies 📦
+        run: npm ci
 
-      - name: Run Linter
-        run: npm run lint || echo "⚠️ Lint warnings (no fail)"
+      - name: Run Lint 🧹
+        # Giả định bạn đã có script "lint" trong package.json
+        # Nếu chưa có, bạn cần thêm nó (ví dụ: "lint": "eslint .")
+        run: npm run lint || echo "Script 'lint' not found, skipping."
 
-      - name: Fix Jest permissions
-        run: chmod -R 777 node_modules
+      - name: Run Tests and generate Coverage 🧪
+        # Chạy kiểm thử và tạo báo cáo phạm vi (coverage)
+        run: npm run test -- --coverage
 
-      - name: Run Tests
-        run: npx jest --coverage
-
-      - name: Upload coverage report
+      - name: Upload Coverage Artifact ⬆️
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-report
+          name: test-coverage-report
           path: coverage/
+          retention-days: 7
+          
+  # Job tách biệt để đảm bảo chỉ chạy khi cần thiết (ví dụ: tạo build artifact)
+  # build:
+  #   name: Build Application (Tùy chọn)
+  #   runs-on: ubuntu-latest
+  #   needs: build_and_test
+  #   steps:
+  #     - name: Checkout code 📥
+  #       uses: actions/checkout@v4
+  #     - name: Set up Node.js ⚙️
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: '18'
+  #         cache: 'npm'
+  #     - name: Install dependencies 📦
+  #       run: npm ci
+  #     - name: Run Build Script
+  #       # Giả sử bạn có một lệnh build như webpack, vite, v.v.
+  #       # run: npm run build
+  #     - name: Upload Build Artifact 🏗️
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: production-build
+  #         path: dist/ # Thay thế bằng thư mục build thực tế của bạn
+  #         retention-days: 30
